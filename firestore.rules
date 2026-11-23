@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function haySesion() {
+      return request.auth != null;
+    }
+
+    function esEncargado() {
+      return haySesion()
+        && get(/databases/$(db)/documents/usuarios/$(request.auth.uid)).data.rol == 'encargado';
+    }
+
+    // Solo cambian los campos de la lista
+    function soloCambia(campos) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
+    }
+
+    // ---------- Usuarios ----------
+    match /usuarios/{uid} {
+      allow read: if request.auth.uid == uid || esEncargado();
+      // Cada quien crea su perfil y siempre como estudiante
+      allow create: if request.auth.uid == uid && request.resource.data.rol == 'estudiante';
+      // El estudiante puede editar sus datos, su bolsita y sus avisos, pero nunca su rol
+      allow update: if esEncargado()
+        || (request.auth.uid == uid
+            && soloCambia(['telefono', 'carrera', 'semestre', 'notificaciones', 'bolsita', 'bolsitaDesde', 'avisos']));
+    }
+
+    // ---------- Materiales ----------
+    // REGLA CENTRAL: las piezas disponibles nunca pueden ser menores que 0
+    // ni, junto con las que están en reparación, mayores que el total.
+    match /materiales/{id} {
+      allow read: if haySesion();
+      allow write: if esEncargado()
+        && request.resource.data.disponibles >= 0
+        && request.resource.data.enReparacion >= 0
+        && request.resource.data.disponibles + request.resource.data.enReparacion <= request.resource.data.total;
+    }
+
+    // ---------- Préstamos ----------
+    match /prestamos/{id} {
+      allow read: if resource.data.estudianteId == request.auth.uid || esEncargado();
+
+      // El estudiante solo crea solicitudes a su nombre y en estado pendiente
+      allow create: if request.resource.data.estudianteId == request.auth.uid
+        && request.resource.data.estado == 'pendiente'
+        && request.resource.data.items.size() > 0;
+
+      // Solo el encargado cambia el estado. El estudiante solo puede renovar una vez.
+      allow update: if esEncargado()
+        || (resource.data.estudianteId == request.auth.uid
+            && resource.data.estado == 'entregado'
+            && resource.data.renovado == false
+            && soloCambia(['fechaLimite', 'renovado']));
+    }
+  }
+}
