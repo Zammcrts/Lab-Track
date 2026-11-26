@@ -19,8 +19,10 @@ service cloud.firestore {
     // ---------- Usuarios ----------
     match /usuarios/{uid} {
       allow read: if request.auth.uid == uid || esEncargado();
-      // Cada quien crea su perfil y siempre como estudiante
-      allow create: if request.auth.uid == uid && request.resource.data.rol == 'estudiante';
+      // Cada quien crea su perfil, siempre como estudiante y firmando la política con su matrícula
+      allow create: if request.auth.uid == uid
+        && request.resource.data.rol == 'estudiante'
+        && request.resource.data.politicaFirma == request.resource.data.matricula;
       // El estudiante puede editar sus datos, su bolsita y sus avisos, pero nunca su rol
       allow update: if esEncargado()
         || (request.auth.uid == uid

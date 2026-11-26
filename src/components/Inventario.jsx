@@ -4,7 +4,7 @@ import Pagina from './Pagina'
 import { Encabezado, Estadisticas } from './Encabezado'
 import Chip from './Chip'
 import CampoFormulario from './CampoFormulario'
-import { agregarMaterial, cambiarActivo, cargarCatalogoEjemplo, marcarReparada } from '../data/materiales'
+import { agregarMaterial, cambiarActivo, cargarCatalogo, faltantesDelCatalogo, marcarReparada } from '../data/materiales'
 import { mensajeDeError } from '../logic/auth'
 import { CATEGORIAS } from '../logic/catalogo'
 import { estaActivo } from '../logic/prestamos'
@@ -93,12 +93,15 @@ export default function Inventario() {
           <CampoFormulario id="ubicacion" etiqueta="Ubicación" placeholder="Estante A1" value={form.ubicacion} onChange={cambiar} />
           <button type="submit" className="boton boton-primario">Agregar</button>
         </form>
-        {materiales.length === 0 && (
+        {faltantesDelCatalogo(materiales).length > 0 && (
           <div className="aviso-semilla">
-            <p>El inventario está vacío. Puedes cargar un catálogo de ejemplo para probar.</p>
+            <p>
+              Faltan {faltantesDelCatalogo(materiales).length} materiales del catálogo del laboratorio
+              (Arduinos, Raspberry Pi, compuertas, protoboards, herramientas, cables HDMI y microSD).
+            </p>
             <button type="button" className="boton boton-primario"
-              onClick={() => hacer(cargarCatalogoEjemplo, 'Catálogo de ejemplo cargado.')}>
-              Cargar catálogo de ejemplo
+              onClick={() => hacer(() => cargarCatalogo(materiales), 'Catálogo del laboratorio cargado.')}>
+              Cargar catálogo
             </button>
           </div>
         )}

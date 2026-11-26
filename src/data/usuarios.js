@@ -15,6 +15,8 @@ export function crearPerfil(uid, { nombre, matricula, correo }) {
     bolsita: [], // [{ materialId, cantidad }]
     bolsitaDesde: null, // cuándo se agregó el primer artículo
     avisos: [], // materiales agotados de los que quiere aviso
+    politicaFirma: matricula, // firmó la política del laboratorio con su matrícula
+    politicaFecha: new Date(),
   })
 }
 
