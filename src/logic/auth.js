@@ -24,7 +24,7 @@ export function validarLogin({ identificador, contrasena }, dominio = DOMINIO) {
   return errores
 }
 
-export function validarRegistro({ nombre, matricula, correo, contrasena, confirmacion }, dominio = DOMINIO) {
+export function validarRegistro({ nombre, matricula, correo, contrasena, confirmacion, aceptaPolitica }, dominio = DOMINIO) {
   const errores = {}
   const correoLimpio = correo.trim().toLowerCase()
   if (nombre.trim().length < 3) errores.nombre = 'Ingresa tu nombre completo.'
@@ -33,6 +33,7 @@ export function validarRegistro({ nombre, matricula, correo, contrasena, confirm
   else if (dominio && !correoLimpio.endsWith('@' + dominio)) errores.correo = `Usa tu correo institucional (@${dominio}).`
   if (contrasena.length < 8) errores.contrasena = 'La contraseña debe tener al menos 8 caracteres.'
   if (contrasena !== confirmacion) errores.confirmacion = 'Las contraseñas no coinciden.'
+  if (!aceptaPolitica) errores.politica = 'Debes leer y firmar la política del laboratorio.'
   return errores
 }
 
